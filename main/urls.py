@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import other_page, RegisterUserView, RegisterDoneView, user_activate, DeleteUserView
 from .views import index, AKLoginView, profile, AKLogoutView, ChangeUserInfoView, AKPasswordChangeView
+from .views import by_rubric
 
 app_name = 'main'
 urlpatterns = [
@@ -13,6 +14,7 @@ urlpatterns = [
     path('accounts/profile/change/', ChangeUserInfoView.as_view(), name='profile_change'),
     path('accounts/profile/', profile, name='profile'),
     path('accounts/login/', AKLoginView.as_view(), name='login'),
+    path('int:pk', by_rubric, name='by_rubric'),
     path('<str:page>/', other_page, name='other'),
     path('', index, name='index'),
 ]
