@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, Http404
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
@@ -16,11 +16,13 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 
 from .models import AdvUser, SubRubric, AK
-from .forms import ChangeUserInfoForm, RegisterUserForm, SearchForm
+from .forms import ChangeUserInfoForm, RegisterUserForm, SearchForm, AKForm, AIFormSet
 from .utilities import signer
 
 def index(request):
-    return render(request, 'main/index.html')
+    aks = AK.objects.filter(is_active=True)[:10]
+    context = {'aks': aks}
+    return render(request, 'main/index.html', context)
 
 def other_page(request, page):
     try:
@@ -34,7 +36,9 @@ class AKLoginView(LoginView):
 
 @login_required
 def profile(request):
-    return render(request, 'main/profile.html')
+    aks = AK.objects.filter(author=request.user.pk)
+    context = {'aks': aks}
+    return render(request, 'main/profile.html', context)
 
 class AKLogoutView(LoginRequiredMixin, LogoutView):
     template_name = 'main/logout.html'
@@ -121,4 +125,63 @@ def by_rubric(request, pk):
     page = paginator.get_page(page_num)
     context = {'rubric': rubric, 'page': page, 'aks': page.object_list, 'form': form}
     return render(request, 'main/by_rubric.html', context)
+
+def detail(request, rubric_pk, pk):
+    ak = get_object_or_404(AK, pk=pk)
+    ais = ak.additionalimage_set.all()
+    context = {'ak': ak, 'ais': ais}
+    return render(request, 'main/detail.html', context)
+
+@login_required
+def profile_ak_detail(request, rubric_pk, pk):
+    ak = get_object_or_404(AK, pk=pk)
+    ais = ak.additionalimage_set.all()
+    context = {'ak': ak, 'ais': ais}
+    return render(request, 'main/profile_ak_detail.html', context)
+
+@login_required
+def profile_ak_add(request):
+    if request.method == 'POST':
+        form = AKForm(request.POST, request.FILES)
+        if form.is_valid():
+            ak = form.save()
+            formset = AIFormSet(request.POST, request.FILES, instance=ak)
+            if formset.is_valid():
+                formset.save()
+                messages.add_message(request, messages.SUCCESS, 'Объявление добавлено')
+                return redirect('main:profile')
+    else:
+        form = AKForm(initial={'author': request.user.pk})
+        formset = AIFormSet()
+    context = {'form': form, 'formset': formset}
+    return render(request, 'main/profile_ak_add.html', context)
+
+@login_required
+def profile_ak_change(request, pk):
+    ak = get_object_or_404(AK, pk=pk)
+    if request.method == 'POST':
+        form = AKForm(request.POST, request.FILES ,instance=ak)
+        if form.is_valid():
+            ak = form.save()
+            formset = AIFormSet(request.POST, request.FILES, instance=ak)
+            if formset.is_valid():
+                formset.save()
+                messages.add_message(request, messages.SUCCESS , 'Объявление исправлено')
+                return redirect('main:profile')
+    else:
+        form = AKForm(instance=ak)
+        formset = AIFormSet(instance=ak)
+    context = {'form': form, 'formset': formset}
+    return render(request, 'main/profile_ak_change.html', context)
+
+@login_required
+def profile_ak_delete(request, pk):
+    ak = get_object_or_404(AK, pk=pk)
+    if request.method == 'POST':
+        ak.delete()
+        messages.add_message(request, messages.SUCCESS, 'Объявление удалено')
+        return redirect('main:profile')
+    else:
+        context = {'ak': ak}
+        return render(request, 'main/profile_ak_delete.html', context)
 
