@@ -1,12 +1,16 @@
 {% extends "layout/basic.html" %}
 
+{% load bootstrap4 %}
+
 {% block title %}{{ ak.title }} - {{ ak.rubric.name }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid mt-3">
     <div class="row">
         {% if ak.image %}
-            <div class="col-md-auto"><img src="{{ ak.image.url }}" class="main-image"></div>
+            <div class="col-md-auto">
+                <img src="{{ ak.image.url }}" class="main-image">
+            </div>
         {% endif %}
         <div class="col">
             <h2>{{ ak.title }}</h2>
@@ -27,4 +31,21 @@
     </div>
 {% endif %}
 <p><a href="{% url 'main:by_rubric' pk=ak.rubric.pk %}{{ all }}">Назад</a> </p>
+<h4 class="mt-5">Новый комментарий</h4>
+<form method="post">
+    {% csrf_token %}
+    {% bootstrap_form form layout='horizontal' %}
+    {% buttons submit='Добавить' %}{% endbuttons %}
+</form>
+{% if comments %}
+<div class="mt-5">
+    {% for comment in comments %}
+        <div class="my-2 p-2 border">
+            <h5>{{ comment.author }}</h5>
+            <p>{{ comment.content }}</p>
+            <p class="text-right font-italic">{{ comment.created_at }}</p>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
 {% endblock %}

@@ -15,8 +15,9 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 
-from .models import AdvUser, SubRubric, AK
+from .models import AdvUser, SubRubric, AK, Comment
 from .forms import ChangeUserInfoForm, RegisterUserForm, SearchForm, AKForm, AIFormSet
+from .forms import GuestCommentForm, UserCommentForm
 from .utilities import signer
 
 def index(request):
@@ -129,7 +130,23 @@ def by_rubric(request, pk):
 def detail(request, rubric_pk, pk):
     ak = AK.objects.get(pk=pk)
     ais = ak.additionalimage_set.all()
-    context = {'ak': ak, 'ais': ais}
+    comments = Comment.objects.filter(ak=pk, is_active=True)
+    initial = {'ak': ak.pk}
+    if request.user.is_authenticated:
+        initial['author'] = request.user.username
+        form_class = UserCommentForm
+    else:
+        form_class = GuestCommentForm
+    form = form_class(initial=initial)
+    if request.method == 'POST':
+        c_form = form_class(request.POST)
+        if c_form.is_valid():
+            c_form.save()
+            messages.add_message(request, messages.SUCCESS, 'Комментарий добавлен')
+        else:
+            form = c_form
+            messages.add_message(request, messages.WARNING, 'Комментарий не добавлен')
+    context = {'ak': ak, 'ais': ais, 'comments': comments, 'form': form}
     return render(request, 'main/detail.html', context)
 
 @login_required
