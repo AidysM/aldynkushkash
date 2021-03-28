@@ -127,13 +127,13 @@ def by_rubric(request, pk):
     return render(request, 'main/by_rubric.html', context)
 
 def detail(request, rubric_pk, pk):
-    ak = get_object_or_404(AK, pk=pk)
+    ak = AK.objects.get(pk=pk)
     ais = ak.additionalimage_set.all()
     context = {'ak': ak, 'ais': ais}
     return render(request, 'main/detail.html', context)
 
 @login_required
-def profile_ak_detail(request, rubric_pk, pk):
+def profile_ak_detail(request, pk):
     ak = get_object_or_404(AK, pk=pk)
     ais = ak.additionalimage_set.all()
     context = {'ak': ak, 'ais': ais}
@@ -160,13 +160,13 @@ def profile_ak_add(request):
 def profile_ak_change(request, pk):
     ak = get_object_or_404(AK, pk=pk)
     if request.method == 'POST':
-        form = AKForm(request.POST, request.FILES ,instance=ak)
+        form = AKForm(request.POST, request.FILES, instance=ak)
         if form.is_valid():
             ak = form.save()
             formset = AIFormSet(request.POST, request.FILES, instance=ak)
             if formset.is_valid():
                 formset.save()
-                messages.add_message(request, messages.SUCCESS , 'Объявление исправлено')
+                messages.add_message(request, messages.SUCCESS, 'Объявление исправлено')
                 return redirect('main:profile')
     else:
         form = AKForm(instance=ak)
