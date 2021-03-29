@@ -1,7 +1,7 @@
 from django.contrib import admin
 import datetime
 
-from .models import AdvUser, AK, AdditionalImage
+from .models import AdvUser, AK, AdditionalImage, Comment
 from .utilities import send_activation_notification
 from .models import SuperRubric, SubRubric
 from .forms import SubRubricForm
@@ -73,4 +73,15 @@ class AKAdmin(admin.ModelAdmin):
     inlines = (AdditionalImageInline,)
 
 admin.site.register(AK, AKAdmin)
+
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('author', 'content', 'created_at', 'is_active')
+    list_display_links = ('author', 'content')
+    list_filter = ('is_active',)
+    search_fields = ('author', 'content',)
+    date_hierarchy = 'created_at'
+    fields = ('author', 'content', 'is_active', 'created_at')
+    readonly_fields = ('created_at',)
+
+admin.site.register(Comment, CommentAdmin)
 
