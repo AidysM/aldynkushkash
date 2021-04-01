@@ -87,8 +87,12 @@ WSGI_APPLICATION = 'aldynkushkash.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'aldynkush.data',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'alkushDB',
+        'USER': 'ak_user',
+        'PASSWORD': 'alkush2021',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
